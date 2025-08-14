@@ -1,3 +1,4 @@
+/* --- Global & Reset --- */
 @import url('https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap');
 
 .b-player-container * {
@@ -49,7 +50,7 @@
     margin-bottom: 20px;
     border-bottom: 2px solid #2a2a2a;
     padding-bottom: 10px;
-    color: #fff; /* <-- PERBAIKAN: Menambahkan warna putih pada judul */
+    color: #fff;
 }
 
 .b-player-playlist-grid {
@@ -93,8 +94,6 @@
 }
 
 /* --- Tampilan Player --- */
-/* PERBAIKAN: Menghapus baris '#player-view { display: none; }' yang menyebabkan konflik */
-
 .b-player-main-layout {
     display: flex;
     gap: 30px;
@@ -103,6 +102,7 @@
 .b-player-left-panel {
     flex: 1;
     max-width: 350px;
+    position: relative;
 }
 
 .b-player-right-panel {
@@ -145,7 +145,7 @@
     display: flex;
     justify-content: center;
     align-items: center;
-    gap: 20px;
+    gap: 15px;
     margin-top: 20px;
 }
 
@@ -158,6 +158,9 @@
     border-radius: 20px;
     cursor: pointer;
     transition: background-color 0.2s;
+    border: none;
+    color: #e0e0e0;
+    font-family: 'Inter', sans-serif;
 }
 .b-player-interactions .interaction-btn:hover {
     background-color: #3a3a3a;
@@ -166,10 +169,6 @@
     width: 20px;
     height: 20px;
     fill: #b3b3b3;
-}
-.b-player-interactions .interaction-btn.liked svg,
-.b-player-interactions .interaction-btn.disliked svg {
-    fill: #1DB954;
 }
 
 .b-player-controls {
@@ -246,17 +245,7 @@
     height: 28px;
 }
 
-.b-player-extra-controls {
-    margin-top: 20px;
-    display: flex;
-    justify-content: space-around;
-    align-items: center;
-    background: #181818;
-    padding: 10px;
-    border-radius: 8px;
-}
-
-/* --- Playlist Lagu & Komentar --- */
+/* --- Tabs --- */
 .b-player-tabs {
     display: flex;
     border-bottom: 1px solid #2a2a2a;
@@ -334,16 +323,46 @@
 
 /* --- Sistem Komentar --- */
 .b-player-comment-section {
-    max-height: 500px;
+    display: flex;
+    flex-direction: column;
+}
+#comments-container {
+    max-height: 400px;
     overflow-y: auto;
     padding-right: 10px;
+    margin-bottom: 20px;
+    display: flex;
+    flex-direction: column;
+    gap: 25px;
 }
 .b-player-comment-form-container {
-    margin-bottom: 30px;
+    margin-top: 10px;
 }
-.b-player-comment-form-container .b-player-form-field {
-    margin-bottom: 10px;
+.b-player-editor-toolbar {
+    background-color: #2a2a2a;
+    border: 1px solid #404040;
+    border-bottom: none;
+    padding: 8px;
+    border-top-left-radius: 6px;
+    border-top-right-radius: 6px;
+    display: flex;
+    gap: 10px;
 }
+.b-player-editor-toolbar button {
+    background: none;
+    border: none;
+    color: #b3b3b3;
+    cursor: pointer;
+}
+.b-player-editor-toolbar button:hover {
+    color: #fff;
+}
+.b-player-editor-toolbar svg {
+    width: 20px;
+    height: 20px;
+    fill: currentColor;
+}
+
 .b-player-comment-form-container .b-player-form-field input,
 .b-player-comment-form-container .b-player-form-field textarea {
     width: 100%;
@@ -358,6 +377,11 @@
 .b-player-comment-form-container .b-player-form-field textarea {
     min-height: 80px;
     resize: vertical;
+    border-top-left-radius: 0;
+    border-top-right-radius: 0;
+}
+.b-player-comment-form-container .b-player-form-field {
+    margin-bottom: 10px;
 }
 .b-player-comment-form-container .b-player-form-actions {
     display: flex;
@@ -383,17 +407,12 @@
     cursor: not-allowed;
 }
 
-.b-player-comment-list {
-    display: flex;
-    flex-direction: column;
-    gap: 25px;
-}
 .b-player-comment {
     display: flex;
     gap: 15px;
 }
 .b-player-comment.is-reply {
-    margin-left: 55px; /* Inden untuk balasan */
+    margin-left: 55px;
 }
 .b-player-comment-avatar {
     width: 40px;
@@ -415,7 +434,13 @@
 .b-player-comment-header .name {
     color: #fff;
     font-weight: 700;
-    cursor: pointer;
+}
+.b-player-comment-header .name a {
+    color: inherit;
+    text-decoration: none;
+}
+.b-player-comment-header .name a:hover {
+    text-decoration: underline;
 }
 .b-player-comment-header .time {
     font-size: 0.8em;
@@ -423,6 +448,7 @@
 }
 .b-player-comment-content {
     line-height: 1.6;
+    word-wrap: break-word;
 }
 .b-player-comment-content p { margin-bottom: 10px; }
 .b-player-comment-content strong { color: #fff; }
@@ -477,6 +503,28 @@
     text-align: center;
     font-size: 1.2em;
     color: #ccc;
+    max-height: 500px;
+    overflow-y: auto;
+}
+
+/* --- Notifikasi Toast --- */
+.b-player-toast-notification {
+    position: fixed;
+    bottom: 20px;
+    left: 50%;
+    transform: translateX(-50%);
+    background-color: #1DB954;
+    color: #fff;
+    padding: 10px 20px;
+    border-radius: 20px;
+    z-index: 1000;
+    opacity: 0;
+    transition: opacity 0.3s, bottom 0.3s;
+    pointer-events: none;
+}
+.b-player-toast-notification.show {
+    opacity: 1;
+    bottom: 30px;
 }
 
 /* --- Responsif --- */
@@ -487,11 +535,10 @@
     .b-player-left-panel {
         max-width: 100%;
     }
-    .b-player-songlist, .b-player-comment-section {
+    .b-player-songlist, #comments-container, .b-player-lyrics-content {
         max-height: 300px;
     }
     .b-player-comment.is-reply {
         margin-left: 20px;
     }
 }
-
