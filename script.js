@@ -1,14 +1,7 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // =================================================================
-    // KONFIGURASI PENTING
-    // =================================================================
-    // URL ini sudah disesuaikan dengan yang Anda berikan.
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyv0qyQ4rD2tvNoug7oeMefaU57zydf-uG0dn2djrKhAC6Z5AveE6d97Z3RXnmrWOU/exec";
 
-    // =================================================================
-    // STATE APLIKASI
-    // =================================================================
     let state = {
         currentPlaylistId: null,
         currentSongIndex: 0,
@@ -523,3 +516,4 @@ document.addEventListener('DOMContentLoaded', () => {
     // --- Mulai Aplikasi ---
     init();
 });
+
