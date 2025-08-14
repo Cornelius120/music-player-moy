@@ -1,0 +1,431 @@
+/* --- Global & Reset --- */
+@import url("https://fonts.googleapis.com/css2?family=Inter:wght@400;500;700&display=swap");
+
+.b-player-container * {
+  margin: 0;
+  padding: 0;
+  box-sizing: border-box;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+.b-player-container {
+  font-family: "Inter", sans-serif;
+  background-color: #121212;
+  color: #e0e0e0;
+  width: 100%;
+  min-height: 100vh;
+  display: flex;
+  justify-content: center;
+  align-items: flex-start;
+  padding: 20px;
+}
+
+.b-player-wrapper {
+  width: 100%;
+  max-width: 900px;
+  position: relative;
+  overflow: hidden;
+}
+
+/* --- Tampilan (Views) --- */
+.b-player-view {
+  display: none;
+  flex-direction: column;
+  animation: fadeIn 0.5s ease-in-out;
+}
+
+.b-player-view.active {
+  display: flex;
+}
+
+@keyframes fadeIn {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+/* --- Tampilan Playlist --- */
+#playlist-view h2 {
+  font-size: 2em;
+  margin-bottom: 20px;
+  border-bottom: 2px solid #2a2a2a;
+  padding-bottom: 10px;
+}
+
+.b-player-playlist-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
+  gap: 20px;
+}
+
+.b-player-playlist-card {
+  background: #181818;
+  border-radius: 8px;
+  padding: 15px;
+  cursor: pointer;
+  transition: background-color 0.3s ease;
+  text-align: center;
+}
+
+.b-player-playlist-card:hover {
+  background-color: #282828;
+}
+
+.b-player-playlist-card img {
+  width: 100%;
+  height: 150px;
+  object-fit: cover;
+  border-radius: 6px;
+  margin-bottom: 15px;
+}
+
+.b-player-playlist-card h3 {
+  font-size: 1.1em;
+  margin-bottom: 5px;
+  color: #fff;
+}
+
+.b-player-playlist-card p {
+  font-size: 0.9em;
+  color: #b3b3b3;
+  line-height: 1.4;
+}
+
+/* --- Tampilan Player --- */
+#player-view {
+  display: none; /* Default hidden */
+}
+
+.b-player-main-layout {
+  display: flex;
+  gap: 30px;
+}
+
+.b-player-left-panel {
+  flex: 1;
+  max-width: 350px;
+}
+
+.b-player-right-panel {
+  flex: 2;
+  padding-top: 10px;
+}
+
+.b-player-thumbnail img {
+  width: 100%;
+  border-radius: 12px;
+  box-shadow: 0 8px 25px rgba(0, 0, 0, 0.5);
+}
+
+.b-player-song-info {
+  margin-top: 20px;
+  text-align: center;
+}
+
+.b-player-song-info h2 {
+  font-size: 1.8em;
+  color: #fff;
+}
+
+.b-player-song-info p {
+  font-size: 1.1em;
+  color: #b3b3b3;
+}
+
+.b-player-song-info .genre {
+  display: inline-block;
+  background: #282828;
+  padding: 4px 10px;
+  border-radius: 12px;
+  font-size: 0.8em;
+  margin-top: 10px;
+}
+
+.b-player-controls {
+  margin-top: 25px;
+}
+
+.b-player-progress-container {
+  width: 100%;
+  height: 5px;
+  background: #404040;
+  border-radius: 2.5px;
+  cursor: pointer;
+  margin-bottom: 8px;
+}
+
+.b-player-progress-bar {
+  width: 0%;
+  height: 100%;
+  background: #1db954;
+  border-radius: 2.5px;
+}
+
+.b-player-time-display {
+  display: flex;
+  justify-content: space-between;
+  font-size: 0.8em;
+  color: #b3b3b3;
+  margin-bottom: 15px;
+}
+
+.b-player-main-controls {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 15px;
+}
+
+.b-player-btn {
+  background: none;
+  border: none;
+  cursor: pointer;
+  color: #b3b3b3;
+  transition: color 0.2s ease;
+}
+.b-player-btn:hover {
+  color: #fff;
+}
+.b-player-btn.active {
+  color: #1db954;
+}
+.b-player-btn svg {
+  width: 24px;
+  height: 24px;
+  fill: currentColor;
+}
+
+.b-player-play-btn {
+  background-color: #fff;
+  color: #121212;
+  border-radius: 50%;
+  width: 50px;
+  height: 50px;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  transition: transform 0.2s ease;
+}
+.b-player-play-btn:hover {
+  transform: scale(1.05);
+  color: #121212;
+}
+.b-player-play-btn svg {
+  width: 28px;
+  height: 28px;
+}
+
+.b-player-extra-controls {
+  margin-top: 20px;
+  display: flex;
+  justify-content: space-around;
+  align-items: center;
+  background: #181818;
+  padding: 10px;
+  border-radius: 8px;
+}
+
+/* --- Playlist Lagu & Komentar --- */
+.b-player-tabs {
+  display: flex;
+  border-bottom: 1px solid #2a2a2a;
+  margin-bottom: 20px;
+}
+
+.b-player-tab-btn {
+  padding: 15px 20px;
+  cursor: pointer;
+  background: none;
+  border: none;
+  color: #b3b3b3;
+  font-size: 1em;
+  font-weight: 500;
+  border-bottom: 2px solid transparent;
+  transition: all 0.3s ease;
+}
+.b-player-tab-btn.active {
+  color: #fff;
+  border-bottom-color: #1db954;
+}
+
+.b-player-tab-content {
+  display: none;
+  animation: fadeIn 0.5s;
+}
+.b-player-tab-content.active {
+  display: block;
+}
+
+/* --- Daftar Lagu dalam Playlist --- */
+.b-player-songlist {
+  max-height: 500px;
+  overflow-y: auto;
+}
+.b-player-song-item {
+  display: flex;
+  align-items: center;
+  gap: 15px;
+  padding: 10px;
+  border-radius: 6px;
+  cursor: pointer;
+  transition: background-color 0.2s ease;
+}
+.b-player-song-item:hover,
+.b-player-song-item.playing {
+  background-color: #2a2a2a;
+}
+.b-player-song-item img {
+  width: 40px;
+  height: 40px;
+  border-radius: 4px;
+  object-fit: cover;
+}
+.b-player-song-item-info {
+  flex: 1;
+}
+.b-player-song-item-info h4 {
+  color: #fff;
+  font-weight: 500;
+}
+.b-player-song-item-info p {
+  font-size: 0.9em;
+  color: #b3b3b3;
+}
+
+/* --- Sistem Komentar --- */
+.b-player-comment-section {
+  max-height: 500px;
+  overflow-y: auto;
+  padding-right: 10px;
+}
+.b-player-comment-form-container .b-player-form-field input,
+.b-player-comment-form-container .b-player-form-field textarea {
+  width: 100%;
+  background: #2a2a2a;
+  border: 1px solid #404040;
+  color: #e0e0e0;
+  padding: 10px;
+  border-radius: 6px;
+  font-family: "Inter", sans-serif;
+}
+.b-player-comment-form-container .b-player-form-field textarea {
+  min-height: 80px;
+  resize: vertical;
+}
+.b-player-comment-form-container .b-player-form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 10px;
+  margin-top: 10px;
+}
+.b-player-submit-btn {
+  background: #1db954;
+  color: #fff;
+  border: none;
+  padding: 10px 20px;
+  border-radius: 20px;
+  cursor: pointer;
+  font-weight: 700;
+}
+
+.b-player-comment-list {
+  margin-top: 30px;
+  display: flex;
+  flex-direction: column;
+  gap: 25px;
+}
+.b-player-comment {
+  display: flex;
+  gap: 15px;
+}
+.b-player-comment-avatar {
+  width: 40px;
+  height: 40px;
+  border-radius: 50%;
+  object-fit: cover;
+}
+.b-player-comment-body {
+  flex: 1;
+}
+.b-player-comment-header {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 5px;
+}
+.b-player-comment-header .name {
+  color: #fff;
+  font-weight: 700;
+}
+.b-player-comment-header .time {
+  font-size: 0.8em;
+  color: #b3b3b3;
+}
+.b-player-comment-content {
+  line-height: 1.6;
+}
+.b-player-comment-content p {
+  margin-bottom: 10px;
+}
+.b-player-comment-content strong {
+  color: #fff;
+}
+.b-player-comment-content em {
+  font-style: italic;
+}
+.b-player-comment-content a {
+  color: #1db954;
+  text-decoration: none;
+}
+.b-player-comment-content img,
+.b-player-comment-content video {
+  max-width: 100%;
+  border-radius: 8px;
+  margin-top: 10px;
+}
+.b-player-comment-content .spoiler {
+  background: #2a2a2a;
+  color: #2a2a2a;
+  padding: 2px 5px;
+  border-radius: 4px;
+  cursor: pointer;
+  transition: color 0.3s;
+}
+.b-player-comment-content .spoiler:hover,
+.b-player-comment-content .spoiler.revealed {
+  color: #e0e0e0;
+}
+
+.b-player-comment-actions {
+  display: flex;
+  gap: 15px;
+  margin-top: 10px;
+  font-size: 0.9em;
+}
+.b-player-comment-actions .action-btn {
+  color: #b3b3b3;
+  cursor: pointer;
+}
+.b-player-comment-actions .action-btn:hover {
+  color: #fff;
+}
+
+/* --- Responsif --- */
+@media (max-width: 768px) {
+  .b-player-main-layout {
+    flex-direction: column;
+  }
+  .b-player-left-panel {
+    max-width: 100%;
+  }
+  .b-player-songlist,
+  .b-player-comment-section {
+    max-height: 300px;
+  }
+}
