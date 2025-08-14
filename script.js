@@ -1,21 +1,28 @@
 document.addEventListener('DOMContentLoaded', () => {
 
-    // --- KONFIGURASI PENTING ---
+    // =================================================================
+    // KONFIGURASI PENTING
+    // =================================================================
+    // URL ini sudah disesuaikan dengan yang Anda berikan.
     const GAS_URL = "https://script.google.com/macros/s/AKfycbyv0qyQ4rD2tvNoug7oeMefaU57zydf-uG0dn2djrKhAC6Z5AveE6d97Z3RXnmrWOU/exec";
 
-    // --- State Aplikasi ---
+    // =================================================================
+    // STATE APLIKASI
+    // =================================================================
     let state = {
         currentPlaylistId: null,
         currentSongIndex: 0,
         isPlaying: false,
         isLoop: false,
         isShuffle: false,
-        songsData: {},
+        songsData: {}, // { song_id: { likes: 10, dislikes: 2, comments: [] } }
         currentPlaylist: [],
-        originalPlaylistOrder: []
+        originalPlaylistOrder: [] // Untuk menjaga urutan asli saat shuffle
     };
 
-    // --- Elemen DOM ---
+    // =================================================================
+    // ELEMEN DOM
+    // =================================================================
     const dom = {
         views: {
             playlist: document.getElementById('playlist-view'),
@@ -50,30 +57,29 @@ document.addEventListener('DOMContentLoaded', () => {
         commentsContainer: document.getElementById('comments-container'),
         commentCount: document.getElementById('comment-count'),
         commentForm: document.getElementById('comment-form'),
+        parentCommentIdInput: document.getElementById('parent_comment_id'),
+        commentContentInput: document.querySelector('#comment-form textarea[name="comment_content"]')
     };
 
-    // --- FUNGSI UTAMA ---
+    // =================================================================
+    // FUNGSI UTAMA
+    // =================================================================
 
     async function init() {
-        console.log("Memulai Pemutar Musik v2.1...");
+        console.log("Memulai Pemutar Musik v3.0 (Final)...");
         loadStateFromStorage();
         renderPlaylists();
         await fetchAllSongsData();
         
         const urlParams = new URLSearchParams(window.location.search);
-        const songIdParam = urlParams.get('song');
         const playlistIdParam = urlParams.get('playlist');
-
+        const songIdParam = urlParams.get('song');
+        
+        // Logika untuk deep linking
         if (playlistIdParam) {
             const playlist = musicDatabase.playlists.find(p => p.id === playlistIdParam);
             if (playlist) {
-                switchToPlayerView(playlist);
-                if (songIdParam) {
-                    const songIndex = playlist.songIds.indexOf(songIdParam);
-                    if (songIndex > -1) {
-                        loadSong(songIndex);
-                    }
-                }
+                switchToPlayerView(playlist, songIdParam);
             }
         } else if (state.currentPlaylistId) {
             const playlist = musicDatabase.playlists.find(p => p.id === state.currentPlaylistId);
@@ -96,16 +102,23 @@ document.addEventListener('DOMContentLoaded', () => {
         saveStateToStorage();
     }
 
-    function switchToPlayerView(playlist) {
+    function switchToPlayerView(playlist, songIdToShow = null) {
         state.currentPlaylistId = playlist.id;
-        state.currentPlaylist = playlist.songIds.map(id => musicDatabase.songs.find(s => s.id === id));
-        state.originalPlaylistOrder = [...state.currentPlaylist];
+        state.originalPlaylistOrder = playlist.songIds.map(id => musicDatabase.songs.find(s => s.id === id));
+        state.currentPlaylist = state.isShuffle ? getShuffledPlaylist() : [...state.originalPlaylistOrder];
         
         dom.views.playlist.classList.remove('active');
         dom.views.player.classList.add('active');
         
         renderSonglist();
-        loadSong(state.currentSongIndex < state.currentPlaylist.length ? state.currentSongIndex : 0);
+        
+        let initialSongIndex = state.currentSongIndex;
+        if (songIdToShow) {
+            const requestedIndex = state.originalPlaylistOrder.findIndex(s => s.id === songIdToShow);
+            if (requestedIndex > -1) initialSongIndex = requestedIndex;
+        }
+        
+        loadSong(initialSongIndex < state.originalPlaylistOrder.length ? initialSongIndex : 0);
         saveStateToStorage();
     }
 
@@ -128,10 +141,10 @@ document.addEventListener('DOMContentLoaded', () => {
     
     function renderSonglist() {
         dom.songlistContainer.innerHTML = '';
-        state.currentPlaylist.forEach((song, index) => {
+        state.currentPlaylist.forEach((song) => {
             const item = document.createElement('div');
             item.className = 'b-player-song-item';
-            item.dataset.index = index;
+            item.dataset.songId = song.id;
             item.innerHTML = `
                 <img src="${song.thumbnail}" alt="${song.title}" onerror="this.src='https://placehold.co/40x40/333/ccc?text=S'">
                 <div class="b-player-song-item-info">
@@ -155,8 +168,7 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.lyricsContainer.textContent = song.lyrics || "Lirik tidak tersedia untuk lagu ini.";
 
         document.querySelectorAll('.b-player-song-item').forEach(item => {
-            const songIdInList = state.currentPlaylist[item.dataset.index]?.id;
-            item.classList.toggle('playing', songIdInList === song.id);
+            item.classList.toggle('playing', item.dataset.songId === song.id);
         });
         
         updateInteractionDisplay(song.id);
@@ -195,7 +207,7 @@ document.addEventListener('DOMContentLoaded', () => {
 
         rootComments.forEach(comment => {
             dom.commentsContainer.appendChild(createCommentElement(comment));
-            comment.replies.forEach(reply => {
+            comment.replies.sort((a,b) => new Date(a.timestamp) - new Date(b.timestamp)).forEach(reply => {
                 dom.commentsContainer.appendChild(createCommentElement(reply, true));
             });
         });
@@ -216,7 +228,7 @@ document.addEventListener('DOMContentLoaded', () => {
             <div class="b-player-comment-body">
                 <div class="b-player-comment-header">
                     <span class="name">${comment.user_name}</span>
-                    <span class="time">${new Date(comment.timestamp).toLocaleString()}</span>
+                    <span class="time">${new Date(comment.timestamp).toLocaleString('id-ID')}</span>
                 </div>
                 <div class="b-player-comment-content">${processedContent}</div>
                 <div class="b-player-comment-actions">
@@ -224,6 +236,14 @@ document.addEventListener('DOMContentLoaded', () => {
                 </div>
             </div>
         `;
+        
+        div.querySelector('.reply-btn').addEventListener('click', (e) => {
+            const target = e.currentTarget;
+            dom.parentCommentIdInput.value = target.dataset.commentId;
+            dom.commentContentInput.value = `@${target.dataset.userName} `;
+            dom.commentContentInput.focus();
+        });
+
         return div;
     }
 
@@ -235,10 +255,7 @@ document.addEventListener('DOMContentLoaded', () => {
         
         state.currentSongIndex = index;
         const song = state.originalPlaylistOrder[index];
-        if (!song) {
-            console.error("Lagu tidak ditemukan pada index:", index);
-            return;
-        }
+        if (!song) return;
 
         updateSongDisplay(song);
         
@@ -300,13 +317,33 @@ document.addEventListener('DOMContentLoaded', () => {
         dom.audioPlayer.currentTime = (clickX / width) * dom.audioPlayer.duration;
     }
 
+    function getShuffledPlaylist() {
+        const currentSong = state.originalPlaylistOrder[state.currentSongIndex];
+        let shuffled = [...state.originalPlaylistOrder].sort(() => Math.random() - 0.5);
+        // Pastikan lagu saat ini tetap ada di daftar
+        if (currentSong) {
+            shuffled = shuffled.filter(s => s.id !== currentSong.id);
+            shuffled.unshift(currentSong);
+        }
+        return shuffled;
+    }
+
     function toggleShuffle() {
         state.isShuffle = !state.isShuffle;
         dom.shuffleBtn.classList.toggle('active', state.isShuffle);
+        
+        if (state.isShuffle) {
+            state.currentPlaylist = getShuffledPlaylist();
+        } else {
+            state.currentPlaylist = [...state.originalPlaylistOrder];
+        }
+        
+        renderSonglist();
+        updateSongDisplay(state.originalPlaylistOrder[state.currentSongIndex]);
         saveStateToStorage();
     }
 
-    // --- FUNGSI INTERAKSI DENGAN API (GOOGLE APPS SCRIPT) ---
+    // --- FUNGSI INTERAKSI DENGAN API ---
     
     async function apiPost(action, payload) {
         try {
@@ -320,7 +357,7 @@ document.addEventListener('DOMContentLoaded', () => {
             });
             return response.json();
         } catch (error) {
-            console.error(`API Post Error for action ${action}:`, error);
+            console.error(`API Post Error untuk aksi ${action}:`, error);
             return { error: error.message };
         }
     }
@@ -389,7 +426,8 @@ document.addEventListener('DOMContentLoaded', () => {
 
         if (result && result.status === 'sukses') {
             dom.commentForm.reset();
-            fetchComments(songId); // Langsung refresh komentar
+            dom.parentCommentIdInput.value = ''; // Bersihkan parent ID setelah submit
+            fetchComments(songId);
         } else {
             alert("Gagal mengirim komentar. Silakan coba lagi.");
         }
@@ -437,7 +475,6 @@ document.addEventListener('DOMContentLoaded', () => {
 
     // --- EVENT LISTENERS ---
     function setupEventListeners() {
-        // Kontrol Player
         dom.playPauseBtn.addEventListener('click', () => state.isPlaying ? pauseSong() : playSong());
         dom.nextBtn.addEventListener('click', nextSong);
         dom.prevBtn.addEventListener('click', prevSong);
@@ -449,7 +486,6 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         dom.shuffleBtn.addEventListener('click', toggleShuffle);
         
-        // Progress Bar
         dom.audioPlayer.addEventListener('timeupdate', updateProgress);
         dom.audioPlayer.addEventListener('loadedmetadata', updateProgress);
         dom.audioPlayer.addEventListener('ended', () => { if (!state.isLoop) nextSong(); });
@@ -460,10 +496,8 @@ document.addEventListener('DOMContentLoaded', () => {
         });
         dom.progressContainer.addEventListener('click', setProgress);
 
-        // Tombol kembali
         dom.backToPlaylistsBtn.addEventListener('click', switchToPlaylistView);
         
-        // Tabs
         dom.tabButtons.forEach(btn => {
             btn.addEventListener('click', () => {
                 const tab = btn.dataset.tab;
@@ -474,7 +508,6 @@ document.addEventListener('DOMContentLoaded', () => {
             });
         });
 
-        // Interaksi
         dom.likeBtn.addEventListener('click', () => {
             const songId = state.originalPlaylistOrder[state.currentSongIndex].id;
             postInteraction(songId, 'like');
@@ -484,7 +517,6 @@ document.addEventListener('DOMContentLoaded', () => {
             postInteraction(songId, 'dislike');
         });
 
-        // Form Komentar
         dom.commentForm.addEventListener('submit', postComment);
     }
 
